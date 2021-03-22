@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:vibration/vibration.dart';
+import 'package:geolocator/geolocator.dart';
 
 void main() {
   runApp(MyApp());
@@ -46,17 +48,31 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+  var _position;
+
+  void _incrementCounter() async {
+    var speedInMps;
+
+    Geolocator.getPositionStream(desiredAccuracy: LocationAccuracy.high, distanceFilter: 10).listen((position) {
+      speedInMps = position; // this is your speed
+
+      setState(() {
+        // This call to setState tells the Flutter framework that something has
+        // changed in this State, which causes it to rerun the build method below
+        // so that the display can reflect the updated values. If we changed
+        // _counter without calling setState(), then the build method would not be
+        // called again, and so nothing would appear to happen.
+        _position = speedInMps;
+      });
     });
+
+  }
+
+  void _vibrate() async {
+    if (await Vibration.hasVibrator()) {
+      Vibration.vibrate(duration: 2500);
+    }
   }
 
   @override
@@ -96,8 +112,18 @@ class _MyHomePageState extends State<MyHomePage> {
             Text(
               'You have pushed the button this many times:',
             ),
+            TextButton(
+              onPressed: _vibrate,
+              child: Text('Vibrar'),
+              style: TextButton.styleFrom(
+                primary: Colors.white,
+                backgroundColor: Colors.blue,
+                onSurface: Colors.grey,
+                shape: const BeveledRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(6)))
+              ),
+            ),
             Text(
-              '$_counter',
+              '$_position',
               style: Theme.of(context).textTheme.headline4,
             ),
           ],
